@@ -1,5 +1,6 @@
 # Importing necessary libraries
 from transformers import pipeline
+from pydub import AudioSegment
 import numpy as np
 import librosa
 import time
@@ -47,6 +48,48 @@ def segmentLargeArray(inputArray,array_length,chunksize=200000):
     for i in range(0,array_length+1,chunksize):
         list_of_segments.append(inputArray[i:i+chunksize])
     return list_of_segments 
+
+def convertAudio(src_audio_path,format="mp3"):
+    """
+    Description:
+    -------------
+    This function converts audio files from m4a files to mp3 files(by default) or any other file format specified by the user
+    
+    Arguments:
+    -------------
+    src_audio_path: path of the audio file in m4a format
+    
+    Returns:
+    -------------
+    dest_audio_path: path of the audio file in desired format
+    """
+    filename, ext = getFileNameAndExtension(src_audio_path)
+    # if the extension is already flac no need to convert
+    if ext == format:
+        return src_audio_path
+    # create a temporary flac file as flac is supported in torchaudio
+    dest_audio_path = f"temp/{filename}.{format}"  
+    # using AudioSegment from pydub to convert from any audio format to flac as flac is compressed format of wav and torchaudio only supports wav and flac
+    audio = AudioSegment.from_file(src_audio_path,format="m4a")
+    # Export the audio to flac file
+    audio.export(dest_audio_path, format=format)
+    return dest_audio_path
+
+def deleteTempAudio(dest_audio_path):
+    """
+    Description:
+    -------------
+    This function deletes the temporary converted audio files
+    
+    Arguments:
+    -------------
+    dest_audio_path: path of the audio file in mp3 format created temporarily
+    
+    Returns:
+    -------------
+    None
+    """
+    os.remove(dest_audio_path)
 
 def generateTranscript(audio_input,model):
     """
@@ -113,16 +156,24 @@ def generateTranscriptForFolder(input_folder_path,model):
     None
     """
     available_files = os.listdir(input_folder_path)
-    audio_extensions = ['mp3','wav','flac']
+    audio_extensions = ['mp3','wav','flac','m4a']
     print(f"There are total {len(audio_extensions)} files in {input_folder_path}")
     for available_file in available_files:
         filename, ext = getFileNameAndExtension(available_file)
         if ext in audio_extensions:
             print(f"{available_file} is a valid audio file, so proceeding to generate the transcript")
             audio_file_path = f"{input_folder_path}/{available_file}"
+            # convert to mp3 if input is a m4a file
+            if ext == "m4a":
+                print(f"{available_file} is in m4a format, so converting it to mp3 format")
+                audio_file_path = convertAudio(audio_file_path,"mp3")
             start_time = time.time()
             output = generateTranscript(audio_file_path,model)
             print(f"Transcript generated at {time.time() - start_time} seconds for {available_file}")
+            # delete the temporarily converted mp3 files
+            if ext == "m4a":
+                print(f"Deleting temporarily created mp3 file")
+                deleteTempAudio(audio_file_path)
             destination_file_path = writeOutputToFile(output,audio_file_path)
             print(f"Transcript for {available_file} is written at {destination_file_path}")
         else:
@@ -143,13 +194,19 @@ def generateTranscriptForFile(input_file_path,model):
     -------------
     None
     """
-    audio_extensions = ['mp3','wav','flac']
+    audio_extensions = ['mp3','wav','flac','m4a']
     filename, ext = getFileNameAndExtension(input_file_path)
     if ext in audio_extensions:
         print(f"{input_file_path} is a valid audio file, so proceeding to generate transcript")
+        if ext == "m4a":
+            print(f"{filename} is in m4a format, so converting it to mp3 format")
+            input_file_path = convertAudio(input_file_path,"mp3")
         start_time = time.time()
         output = generateTranscript(input_file_path,model)
         print(f"Transcript generated in {time.time() - start_time} seconds for {filename}")
+        if ext == "m4a":
+            print(f"Deleting temporarily created mp3 file")
+            deleteTempAudio(input_file_path)
         destination_file_path = writeOutputToFile(output,input_file_path)
         print(f"Transcript for {filename} is written at {destination_file_path}")
     else:
