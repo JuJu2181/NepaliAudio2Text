@@ -5,6 +5,7 @@ import numpy as np
 import librosa
 import time
 import os
+from deep_translator import GoogleTranslator
 
 # functions
 def getFileNameAndExtension(file_path):
@@ -119,7 +120,7 @@ def generateTranscript(audio_input,model):
         output = model(audio_input)["text"]
     return output
 
-def writeOutputToFile(output, audio_file_path):
+def writeOutputToFile(output, audio_file_path,translated=False):
     """
     Description:
     -------------
@@ -135,10 +136,40 @@ def writeOutputToFile(output, audio_file_path):
     destination_file_path: File path of the text transcript
     """
     filename,ext = getFileNameAndExtension(audio_file_path)
-    destination_file_path = f"./output_folder/{filename}.txt"
+    if translated:
+            destination_file_path = f"./translated_output_folder/{filename}.txt"
+    else:
+        destination_file_path = f"./output_folder/{filename}.txt"
     with open(destination_file_path,"w",encoding="utf-8") as f:
         f.write(output)
     return destination_file_path
+
+def translateNepaliTranscriptToEnglish(nepali_transcript):
+    """
+    Description:
+    -------------
+    This function translates the Nepali transcript to English using Google Translate.
+    
+    Arguments:
+    -------------
+    nepali_transcript: Nepali transcript generated from Nepali speech
+        
+    Returns:
+    -------------
+    translated_transcript: English transcript translated from the Nepali transcript
+    """
+    print("Now translating the Nepali transcript to English")
+    if len(nepali_transcript) >= 2000:
+        transcript_segments = []
+        for i in range(0,len(nepali_transcript)+1,2000):
+            transcript_segments.append(nepali_transcript[i:i+2000])
+        print(len(transcript_segments))
+        translated_transcript = ''
+        for nep in transcript_segments:
+            translated_transcript += GoogleTranslator(source='auto', target='english').translate(nep)
+    else:
+        translated_transcript = GoogleTranslator(source='auto', target='english').translate(nepali_transcript)
+    return translated_transcript
 
 def generateTranscriptForFolder(input_folder_path,model):
     """
@@ -174,7 +205,11 @@ def generateTranscriptForFolder(input_folder_path,model):
             if ext == "m4a":
                 print(f"Deleting temporarily created mp3 file")
                 deleteTempAudio(audio_file_path)
-            destination_file_path = writeOutputToFile(output,audio_file_path)
+            destination_file_path = writeOutputToFile(output,audio_file_path,translated=False)
+            print(f"Transcript for {available_file} is written at {destination_file_path}")
+            # translate the nepali transcript to english
+            translated_transcript = translateNepaliTranscriptToEnglish(output)
+            destination_file_path = writeOutputToFile(translated_transcript,audio_file_path,translated=True)
             print(f"Transcript for {available_file} is written at {destination_file_path}")
         else:
             print(f"{available_file} is not a valid audio file, so moving to next file")
@@ -209,8 +244,14 @@ def generateTranscriptForFile(input_file_path,model):
             deleteTempAudio(input_file_path)
         destination_file_path = writeOutputToFile(output,input_file_path)
         print(f"Transcript for {filename} is written at {destination_file_path}")
+        # translate the nepali transcript to english
+        translated_transcript = translateNepaliTranscriptToEnglish(output)
+        destination_file_path = writeOutputToFile(translated_transcript,input_file_path,translated=True)
+        print(f"Transcript for {filename} is written at {destination_file_path}")
     else:
         print(f"{input_file_path} is not a valid audio file, please enter a valid audio file with extension mp3, wav or flac")
+        
+
 
 def main(key="folder"):
     """
