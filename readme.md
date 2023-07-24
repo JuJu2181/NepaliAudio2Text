@@ -9,13 +9,17 @@
 ```
 https://github.com/JuJu2181/NepaliAudio2Text
 ```
-### 2. Install requirements.txt  
+### 2. Install FFMPEG
+As, we are dealing with various audio formats in this project, FFmpeg is essential for succesfull running of this project. So I kindly request you to install a suitable version of FFmpeg in your computer before running this project.
+You can download FFmpeg from this link [FFMPEG](https://ffmpeg.org/download.html)
+
+### 3. Install requirements.txt  
 - As I used Python 3.8.5 for this project, it is recommended to use the same Python version to avoid any errors
 > Note: It is suggested to create a virtual environment before installing these requirements
 ```
 pip install -r requirements.txt
 ```
-### 3. Run the project
+### 4. Run the project
 ```
 python audio_to_text.py
 ```
