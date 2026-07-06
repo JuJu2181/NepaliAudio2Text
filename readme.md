@@ -14,12 +14,30 @@ As, we are dealing with various audio formats in this project, FFmpeg is essenti
 You can download FFmpeg from this link [FFMPEG](https://ffmpeg.org/download.html)
 
 ### 3. Install requirements.txt  
-- As I used Python 3.8.5 for this project, it is recommended to use the same Python version to avoid any errors
-> Note: It is suggested to create a virtual environment before installing these requirements
+- First use uv to create a virtual environment with python version 3.12 and then install these requirements
 ```
-pip install -r requirements.txt
+uv venv --python 3.12
 ```
-### 4. Run the project
+If you haven't installed uv you can install it using this [uv installation](https://docs.astral.sh/uv/getting-started/installation/#pypi)
+
+Then install the requirements
+For windows
+```
+uv pip install -r requirements.txt
+```
+
+For Linux
+```
+uv pip install -r requirements-linux.txt
+```
+
+### 4. Create a temp directory
+Before you run the project, manually create a temp directory in the project's root directory
+```
+mkdir temp
+```
+
+### 5. Run the project
 ```
 python audio_to_text.py
 ```
