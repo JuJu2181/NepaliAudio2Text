@@ -17,18 +17,13 @@ You can download FFmpeg from this link [FFMPEG](https://ffmpeg.org/download.html
 - First use uv to create a virtual environment with python version 3.12 and then install these requirements
 ```
 uv venv --python 3.12
+source .venv/bin/activate
 ```
 If you haven't installed uv you can install it using this [uv installation](https://docs.astral.sh/uv/getting-started/installation/#pypi)
 
 Then install the requirements
-For windows
 ```
 uv pip install -r requirements.txt
-```
-
-For Linux
-```
-uv pip install -r requirements-linux.txt
 ```
 
 ### 4. Create a temp directory
